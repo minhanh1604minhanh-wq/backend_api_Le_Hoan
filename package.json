@@ -1,18 +1,13 @@
 {
-  "name": "vo_nguyen_giap_package",
+  "name": "le_hoan_package",
   "version": "1.0.0",
-  "description": "Backend API for Vo Nguyen Giap Interactive 3D Model Web Project",
-  "main": "server_vo_nguyen_giap.js",
+  "description": "",
+  "main": "server.js",
   "scripts": {
-    "start": "node server_vo_nguyen_giap.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
-  "keywords": [
-    "vo-nguyen-giap",
-    "history",
-    "backend",
-    "openai"
-  ],
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

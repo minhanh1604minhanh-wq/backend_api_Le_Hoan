@@ -25,7 +25,7 @@ app.post('/ask', async (req, res) => {
     try {
         // Cấu hình prompt hệ thống (System Prompt) cho OpenAI về Đại tướng Võ Nguyên Giáp
         const languageRequirement = lang === 'en' ? 'Please reply in English.' : 'Vui lòng trả lời bằng Tiếng Việt.';
-        const systemPrompt = `Bạn là một chuyên gia lịch sử am hiểu sâu sắc về Đại tướng Võ Nguyên Giáp - vị tướng vĩ đại của Quân đội nhân dân Việt Nam, người anh hùng dân tộc với những chiến công lẫy lừng, đặc biệt là chiến thắng lịch sử Điện Biên Phủ năm 1954. ${languageRequirement} Hãy dựa vào kiến thức lịch sử chính xác để trả lời người dùng một cách trang trọng, ngắn gọn, súc tích và mạch lạc.`;
+        const systemPrompt = `Bạn là một chuyên gia lịch sử am hiểu sâu sắc về Hoàng đế Lê Hoàn (Lê Đại Hành) - vị vua sáng lập nhà Tiền Lê, người có công đánh Tống, bình Chiêm, đặt nền móng cho nhà nước phong kiến tập quyền Việt Nam. ${languageRequirement} Hãy dựa vào kiến thức lịch sử chính xác để trả lời người dùng một cách trang trọng, ngắn gọn, súc tích và mạch lạc.`;
 
         // Gọi API ChatGPT
         const response = await openai.chat.completions.create({
@@ -82,5 +82,5 @@ app.post('/speak', async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`✅ Server Backend Đại tướng Võ Nguyên Giáp đang chạy thành công tại http://localhost:${port}`);
+    console.log(`✅ Server Backend Hoàng đế Lê Hoàn đang chạy thành công tại http://localhost:${port}`);
 });
