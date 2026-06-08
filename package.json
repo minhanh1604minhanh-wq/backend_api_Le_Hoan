@@ -1,0 +1,25 @@
+{
+  "name": "vo_nguyen_giap_package",
+  "version": "1.0.0",
+  "description": "Backend API for Vo Nguyen Giap Interactive 3D Model Web Project",
+  "main": "server_vo_nguyen_giap.js",
+  "scripts": {
+    "start": "node server_vo_nguyen_giap.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "vo-nguyen-giap",
+    "history",
+    "backend",
+    "openai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "openai": "^6.42.0"
+  }
+}
