@@ -12,35 +12,30 @@ app.use(express.json());
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // ==========================================
-// 1. AI HỎI ĐÁP (Có Gợi ý thông minh)
+// 1. AI HỎI ĐÁP (Giao diện Vàng - Chỉ sự thật)
 // ==========================================
 app.post('/ask', async (req, res) => {
     const { question, lang } = req.body;
     if (!question) return res.status(400).json({ reply: "Vui lòng cung cấp câu hỏi." });
 
     try {
-        const systemPrompt = `Bạn là trợ lý AI đóng vai Hoàng đế Lê Hoàn. 
+        const systemPrompt = `Bạn là trợ lý AI thông minh về lịch sử Lê Hoàn. 
         QUY TẮC: Từ chối các giả thuyết "Nếu như" và yêu cầu người dùng qua mục Đa vũ trụ.
         BẮT BUỘC TRẢ VỀ CHUẨN JSON VỚI ĐỊNH DẠNG:
-        {
-            "reply": "Câu trả lời của bạn",
-            "suggestions": ["Gợi ý câu hỏi 1 đào sâu hơn", "Gợi ý câu hỏi 2"]
-        }`;
+        { "reply": "Câu trả lời của bạn", "suggestions": ["Gợi ý câu hỏi 1", "Gợi ý câu hỏi 2"] }`;
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }], 
-            temperature: 0.6, response_format: { type: "json_object" }
+            temperature: 0.5, response_format: { type: "json_object" }
         });
 
         let cleanContent = response.choices[0].message.content.replace(/```json/gi, '').replace(/```/gi, '').trim();
         res.json(JSON.parse(cleanContent));
-    } catch (error) { 
-        res.status(500).json({ reply: "Lỗi kết nối máy chủ AI.", suggestions: ["Lê Hoàn lên ngôi năm nào?"] }); 
-    }
+    } catch (error) { res.status(500).json({ reply: "Lỗi kết nối máy chủ AI.", suggestions: ["Lê Hoàn lên ngôi năm nào?"] }); }
 });
 
 // ==========================================
-// 2. ĐA VŨ TRỤ (Có Gợi ý thông minh & Tỉ lệ)
+// 2. ĐA VŨ TRỤ (Giao diện Tím - Chỉ Giả thuyết)
 // ==========================================
 app.post('/whatif', async (req, res) => {
     const { history, scenario } = req.body;
@@ -49,18 +44,11 @@ app.post('/whatif', async (req, res) => {
     try {
         const systemPrompt = `Bạn là Cỗ máy Đa Vũ Trụ lịch sử Tiền Lê.
         BẮT BUỘC TRẢ VỀ CHUẨN JSON: 
-        { 
-            "isError": false, 
-            "successRate": 0, 
-            "casualties": 0, 
-            "analysis": "Phân tích hậu quả...",
-            "suggestions": ["Giả thuyết mở rộng 1", "Giả thuyết mở rộng 2"]
-        }`;
+        { "isError": false, "successRate": 0, "casualties": 0, "analysis": "Phân tích hậu quả...", "suggestions": ["Giả thuyết mở rộng 1", "Giả thuyết mở rộng 2"] }`;
 
         const messages = [{ role: "system", content: systemPrompt }, ...history, { role: "user", content: scenario }];
         const chatResponse = await openai.chat.completions.create({
-            model: "gpt-4o-mini", messages: messages,
-            temperature: 0.6, response_format: { type: "json_object" }
+            model: "gpt-4o-mini", messages: messages, temperature: 0.6, response_format: { type: "json_object" }
         });
 
         let cleanContent = chatResponse.choices[0].message.content.replace(/```json/gi, '').replace(/```/gi, '').trim();
@@ -87,7 +75,7 @@ app.post('/roleplay', async (req, res) => {
     const { history, turn } = req.body; 
     try {
         const systemPrompt = `Bạn là Quản trò Game Nhập vai Lịch sử. Người chơi là Hoàng đế Lê Hoàn. Lượt hiện tại: ${turn} / 15.
-        TRẢ VỀ ĐỊNH DẠNG JSON CHUẨN: { "npcDialogue": "...", "choices": ["Hành động 1", "Hành động 2"], "isGameOver": false, "endReason": "Khen/Chê" }`;
+        TRẢ VỀ ĐỊNH DẠNG JSON CHUẨN: { "npcDialogue": "...", "choices": ["Hành động 1", "Hành động 2", "Hành động 3", "Hành động 4"], "isGameOver": false, "endReason": "Khen/Chê" }`;
 
         const messages = [{ role: "system", content: systemPrompt }, ...history];
         const response = await openai.chat.completions.create({
@@ -95,11 +83,7 @@ app.post('/roleplay', async (req, res) => {
         });
 
         let cleanContent = response.choices[0].message.content.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        try {
-            res.json(JSON.parse(cleanContent));
-        } catch (e) {
-            res.json({ npcDialogue: "Bẩm bệ hạ, tình hình nguy cấp xin người tự quyết!", choices: ["Phòng thủ", "Tấn công"], isGameOver: false, endReason: "" });
-        }
+        res.json(JSON.parse(cleanContent));
     } catch (error) { res.status(500).json({ error: true, npcDialogue: "Lỗi kết nối." }); }
 });
 
@@ -109,8 +93,7 @@ app.post('/speak', async (req, res) => {
     if (!text) return res.status(400).send("Lỗi");
     try {
         const mp3 = await openai.audio.speech.create({ model: "tts-1", voice: selectedVoice, input: text });
-        const buffer = Buffer.from(await mp3.arrayBuffer());
-        res.set('Content-Type', 'audio/mpeg'); res.send(buffer);
+        res.set('Content-Type', 'audio/mpeg'); res.send(Buffer.from(await mp3.arrayBuffer()));
     } catch (error) { res.status(500).send("Lỗi tạo giọng nói."); }
 });
 
