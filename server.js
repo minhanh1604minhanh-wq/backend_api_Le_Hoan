@@ -63,18 +63,24 @@ app.post('/whatif', async (req, res) => {
 // ==========================================
 // 3. TRÒ CHƠI NHẬP VAI (ROLEPLAY - Có lọc rác JSON)
 // ==========================================
+// ==========================================
+// 3. TRÒ CHƠI NHẬP VAI (ROLEPLAY - Chống rác ký tự)
+// ==========================================
 app.post('/roleplay', async (req, res) => {
     const { history, turn } = req.body; 
     try {
         const systemPrompt = `Bạn là Quản trò Game Nhập vai Lịch sử Tiền Lê. Người chơi đóng vai Hoàng đế Lê Hoàn. Lượt hiện tại: ${turn} / 15.
-        TRẢ VỀ ĐỊNH DẠNG JSON CHUẨN: { "npcDialogue": "...", "choices": ["A", "B", "C", "D"], "isGameOver": false, "endReason": "" }`;
+        QUY TẮC TỐI THƯỢNG:
+        1. Tạo ra đúng 4 lựa chọn hành động.
+        2. Mảng "choices" CHỈ chứa nội dung hành động, TUYỆT ĐỐI KHÔNG chứa các ký tự như "A.", "B.", "1.", "2.", "-" ở đầu câu. (Ví dụ đúng: "Rút quân về Hoa Lư". Ví dụ sai: "A. Rút quân về Hoa Lư").
+        
+        TRẢ VỀ ĐỊNH DẠNG JSON CHUẨN: { "npcDialogue": "...", "choices": ["Hành động 1", "Hành động 2", "Hành động 3", "Hành động 4"], "isGameOver": false, "endReason": "" }`;
 
         const messages = [{ role: "system", content: systemPrompt }, ...history];
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini", messages: messages, temperature: 0.7, response_format: { type: "json_object" }
         });
 
-        // BỘ LỌC RÁC CHỐNG SẬP
         let cleanContent = response.choices[0].message.content.replace(/```json/gi, '').replace(/```/gi, '').trim();
         res.json(JSON.parse(cleanContent));
     } catch (error) { res.status(500).json({ error: true, npcDialogue: "Lỗi kết nối vũ trụ kịch bản." }); }
