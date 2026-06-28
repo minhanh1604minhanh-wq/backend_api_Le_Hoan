@@ -18,10 +18,13 @@ app.post('/ask', async (req, res) => {
     const { question, lang } = req.body;
     if (!question) return res.status(400).json({ reply: "Vui lòng cung cấp câu hỏi." });
     try {
+        const langInstruction = lang === 'en' ? "You MUST respond entirely in English." : "Bạn BẮT BUỘC phản hồi bằng Tiếng Việt.";
         const systemPrompt = `Bạn là trợ lý AI thông minh về lịch sử Lê Hoàn. 
         QUY TẮC: Từ chối các giả thuyết "Nếu như" và yêu cầu người dùng qua mục Đa vũ trụ.
+        ${langInstruction}
         BẮT BUỘC TRẢ VỀ CHUẨN JSON VỚI ĐỊNH DẠNG:
         { "reply": "Câu trả lời của bạn", "suggestions": ["Gợi ý câu hỏi 1", "Gợi ý câu hỏi 2"] }`;
+        
         const response = await openai.chat.completions.create({ model: "gpt-4o-mini", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }], temperature: 0.5, response_format: { type: "json_object" } });
         let cleanContent = response.choices[0].message.content.replace(/```json/gi, '').replace(/```/gi, '').trim();
         res.json(JSON.parse(cleanContent));
@@ -32,32 +35,38 @@ app.post('/ask', async (req, res) => {
 // 2. ĐA VŨ TRỤ
 // ==========================================
 app.post('/whatif', async (req, res) => {
-    const { history, scenario } = req.body;
+    const { history, scenario, lang } = req.body;
     if (!scenario) return res.status(400).json({ error: true, reply: "Vui lòng cung cấp giả thuyết." });
     try {
+        const langInstruction = lang === 'en' ? "You MUST analyze and write all suggestions entirely in English. Keep JSON keys exactly as requested." : "Bạn BẮT BUỘC phản hồi bằng Tiếng Việt.";
         const systemPrompt = `Bạn là Cỗ máy Đa Vũ Trụ lịch sử Tiền Lê.
+        ${langInstruction}
         BẮT BUỘC TRẢ VỀ CHUẨN JSON: 
         { "isError": false, "successRate": 0, "casualties": 0, "analysis": "Phân tích hậu quả...", "suggestions": ["Giả thuyết mở rộng 1", "Giả thuyết mở rộng 2"] }`;
+        
         const messages = [{ role: "system", content: systemPrompt }, ...history, { role: "user", content: scenario }];
         const chatResponse = await openai.chat.completions.create({ model: "gpt-4o-mini", messages: messages, temperature: 0.6, response_format: { type: "json_object" } });
         let cleanContent = chatResponse.choices[0].message.content.replace(/```json/gi, '').replace(/```/gi, '').trim();
         const aiData = JSON.parse(cleanContent);
+        
         if (aiData.isError) return res.json({ successRate: 0, casualties: 0, reply: aiData.analysis, suggestions: [], imageUrl: null });
         let finalImageUrl = null;
         if (history.length === 0) { try { const imageResponse = await openai.images.generate({ model: "dall-e-2", prompt: `Tranh cổ phong lịch sử Việt Nam u ám: ${scenario}`, n: 1, size: "512x512" }); finalImageUrl = imageResponse.data[0].url; } catch (e) {} }
+        
         res.json({ successRate: aiData.successRate || 0, casualties: aiData.casualties || 0, reply: aiData.analysis, suggestions: aiData.suggestions || [], imageUrl: finalImageUrl });
     } catch (error) { res.status(500).json({ error: true, reply: "Lỗi hệ thống Đa vũ trụ." }); }
 });
 
 // ==========================================
-// 3. TRÒ CHƠI NHẬP VAI (ĐÃ SỬA XUỐNG 10 LƯỢT VÀ ÉP RA NÚT)
+// 3. TRÒ CHƠI NHẬP VAI
 // ==========================================
 app.post('/roleplay', async (req, res) => {
-    const { history, turn } = req.body; 
+    const { history, turn, lang } = req.body; 
     try {
-        // CẬP NHẬT: Sửa 15 thành 10, thêm lệnh CẤM TRỐNG CHOICES
+        const langInstruction = lang === 'en' ? "You MUST write the 'npcDialogue', 'choices', and 'endReason' entirely in English. Keep JSON keys exactly as requested." : "Bạn BẮT BUỘC phản hồi bằng Tiếng Việt.";
         const systemPrompt = `Bạn là Quản trò Game Nhập vai Lịch sử. Người chơi là Hoàng đế Lê Hoàn. Lượt hiện tại: ${turn} / 10.
         QUY TẮC CỨNG: Nếu isGameOver là false, MẢNG "choices" BẮT BUỘC PHẢI CÓ TỪ 2 ĐẾN 4 LỰA CHỌN, KHÔNG ĐƯỢC ĐỂ TRỐNG.
+        ${langInstruction}
         TRẢ VỀ ĐỊNH DẠNG JSON CHUẨN: { "npcDialogue": "...", "choices": ["Hành động 1", "Hành động 2", "Hành động 3"], "isGameOver": false, "endReason": "Khen/Chê" }`;
 
         const messages = [{ role: "system", content: systemPrompt }, ...history];
