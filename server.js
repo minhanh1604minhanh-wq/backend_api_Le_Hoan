@@ -12,7 +12,7 @@ app.use(express.json());
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // ==========================================
-// 1. AI HỎI ĐÁP (Giao diện Vàng - Chỉ sự thật)
+// 1. AI HỎI ĐÁP
 // ==========================================
 app.post('/ask', async (req, res) => {
     const { question, lang } = req.body;
@@ -35,7 +35,7 @@ app.post('/ask', async (req, res) => {
 });
 
 // ==========================================
-// 2. ĐA VŨ TRỤ (Giao diện Tím - Chỉ Giả thuyết)
+// 2. ĐA VŨ TRỤ
 // ==========================================
 app.post('/whatif', async (req, res) => {
     const { history, scenario } = req.body;
@@ -87,6 +87,9 @@ app.post('/roleplay', async (req, res) => {
     } catch (error) { res.status(500).json({ error: true, npcDialogue: "Lỗi kết nối." }); }
 });
 
+// ==========================================
+// 4. ÂM THANH (TTS)
+// ==========================================
 app.post('/speak', async (req, res) => {
     const { text, voiceId } = req.body;
     const selectedVoice = voiceId || "onyx"; 
@@ -95,6 +98,36 @@ app.post('/speak', async (req, res) => {
         const mp3 = await openai.audio.speech.create({ model: "tts-1", voice: selectedVoice, input: text });
         res.set('Content-Type', 'audio/mpeg'); res.send(Buffer.from(await mp3.arrayBuffer()));
     } catch (error) { res.status(500).send("Lỗi tạo giọng nói."); }
+});
+
+// ==========================================
+// 5. LƯU BÁO CÁO VỀ GOOGLE SHEETS
+// ==========================================
+app.post('/save-report', async (req, res) => {
+    const { playerName, history, type } = req.body;
+    
+    // BẠN DÁN LINK "WEB APP URL" (https://script.google.com/...) VÀO GIỮA 2 DẤU NGOẶC KÉP Ở DÒNG DƯỚI ĐÂY NHÉ:
+    const GOOGLE_SHEET_URL = "Dhttps://docs.google.com/spreadsheets/d/1rLF3ZuX6d2uwcdzHu19W3uCqa23Cz064qmcMODPMpEk/edit";
+
+    try {
+        if (GOOGLE_SHEET_URL === "https://docs.google.com/spreadsheets/d/1rLF3ZuX6d2uwcdzHu19W3uCqa23Cz064qmcMODPMpEk/edit") {
+            console.log(`[CẢNH BÁO] Bạn chưa dán link Web App. Dữ liệu: ${playerName}`);
+            return res.json({ success: true, message: "Chưa cấu hình Google Sheet URL." });
+        }
+
+        const fetchResponse = await fetch(GOOGLE_SHEET_URL, {
+            method: 'POST',
+            body: JSON.stringify({ playerName, history, type }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const text = await fetchResponse.text();
+        console.log(`Đã gửi báo cáo về Sheet: ${playerName} - ${type}`);
+        res.json({ success: true });
+    } catch (error) { 
+        console.error("Lỗi khi gửi sang Google Sheets:", error);
+        res.status(500).json({ success: false, message: "Lỗi hệ thống lưu báo cáo." }); 
+    }
 });
 
 app.listen(port, () => { console.log(`✅ Server Backend chạy tại http://localhost:${port}`); });
