@@ -107,10 +107,10 @@ app.post('/save-report', async (req, res) => {
     const { playerName, history, type } = req.body;
     
     // BẠN DÁN LINK "WEB APP URL" (https://script.google.com/...) VÀO GIỮA 2 DẤU NGOẶC KÉP Ở DÒNG DƯỚI ĐÂY NHÉ:
-    const GOOGLE_SHEET_URL = "Dhttps://docs.google.com/spreadsheets/d/1rLF3ZuX6d2uwcdzHu19W3uCqa23Cz064qmcMODPMpEk/edit";
+    const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1rLF3ZuX6d2uwcdzHu19W3uCqa23Cz064qmcMODPMpEk/edit?gid=0#gid=0";
 
     try {
-        if (GOOGLE_SHEET_URL === "https://docs.google.com/spreadsheets/d/1rLF3ZuX6d2uwcdzHu19W3uCqa23Cz064qmcMODPMpEk/edit") {
+        if (GOOGLE_SHEET_URL === "https://docs.google.com/spreadsheets/d/1rLF3ZuX6d2uwcdzHu19W3uCqa23Cz064qmcMODPMpEk/edit?gid=0#gid=0") {
             console.log(`[CẢNH BÁO] Bạn chưa dán link Web App. Dữ liệu: ${playerName}`);
             return res.json({ success: true, message: "Chưa cấu hình Google Sheet URL." });
         }
